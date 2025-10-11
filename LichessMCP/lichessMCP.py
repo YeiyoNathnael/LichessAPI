@@ -1,6 +1,8 @@
 from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
+from datetime import datetime
+
 
 # Initialize FastMCP server
 mcp = FastMCP("lichessMCP")
@@ -28,28 +30,60 @@ def format_user_info(data: dict) -> str:
     
     perfs = data.get('perfs', {}) #Just for readability later on
     count = data.get('count', {})
+    profile = data.get('profile', {})
+    streamer = data.get('streamer', {})
+    playtime = data.get('playTime', {})
 
-    blitz = perfs.get('blitz', {})
-    bullet = perfs.get('bullet', {})
-    rapid = perfs.get('rapid', {})
+    ratings = []
+    for perf_type, perf_data in perfs.items():
+        rating = perf_data.get('rating', 'N/A')
+        games = perf_data.get('games', 0)
+        ratings.append(f"{perf_type.capitalize()}: {rating} ({games} games)")
+
+
+    counts = []
+    for count_type, count_value in count.items():
+        count_name = count_type.capitalize().title()
+        counts.append(f"{count_name}: {count_value}")
+
+    streaming = data.get('streaming', False)
+    twitch = streamer.get('twitch', {})
+    youtube = streamer.get('youtube', {})
+
+    total_playtime = playtime.get('total', 0)
+    total_tv = playtime.get('tv', 0)
+
+    createdAt = datetime.fromtimestamp(data.get('createdAt')/1000).strftime('%Y-%m-%d')
+    lastSeen = datetime.fromtimestamp(data.get('seenAt')/1000).strftime('%Y-%m-%d %H:%M:%S')
+    tosViolation = data.get('tosViolation', False)
+    verified = data.get('verified', False)
+    title = data.get('title', '')
     
     return f"""
 Username: {data.get('username', 'Unknown')}
-Country: {data.get('profile', {}).get('flag', 'Unknown')}
-Bio: {data.get('profile', {}).get('bio', 'No bio')}
+Profile: {data.get('url', 'N/A')}
+title: {title if title else 'No title'}
+Bio: {profile.get('bio', 'No bio')}
+Country: {profile.get('flag', 'Unknown')}
+Twitch: {twitch.get('channel', 'N/A')}
+YouTube: {youtube.get('channel', 'N/A')}
 
+{'Account is banned for TOS violation' if tosViolation else ''}
+{'Account is verified' if verified else ''}
+{'User is streaming' if streaming else ''}
+
+{f"Account created on {createdAt}"}
+Last Online: {lastSeen} 
+
+{f"User is currently playing, Watch their game at {data.get('playing','N/A')}" if data.get('playing') else 'Not currently playing'}
 Ratings:
-  Bullet: {bullet.get('rating', 'N/A')} ({bullet.get('games', 0)} games)
-  Blitz: {blitz.get('rating', 'N/A')} ({blitz.get('games', 0)} games)
-  Rapid: {rapid.get('rating', 'N/A')} ({rapid.get('games', 0)} games)
+{ratings if ratings else 'No ratings available'}
 
 Stats:
-  Total Games: {count.get('all', 0)}
-  Wins: {count.get('win', 0)}
-  Losses: {count.get('loss', 0)}
-  Draws: {count.get('draw', 0)}
+{counts if counts else 'No stats available'}
+Playtime: {total_playtime // 3600} hours total, {total_tv // 3600} hours on TV
 
-Profile: {data.get('url', 'N/A')}
+
 """    
         
 @mcp.tool()
@@ -58,11 +92,11 @@ async def lichess_user(username: str) -> str:
    url = f"{LICHESS_API_BASE}/api/user/{username}"
    data = await make_lichess_request(url)
 
-#    if not data:
-#         return "Unable to fetch data for the user."
+   if not data:
+        return "Unable to fetch data for the user."
 
-#    if not "username" in data:
-#         return "No user by this name."
+   if not "username" in data:
+        return "No user by this name."
 
    userinfo = format_user_info(data)
    return "\n---\n".join(userinfo)
