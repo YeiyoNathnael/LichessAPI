@@ -318,3 +318,26 @@ def parse_team_members(members):
         lines.append(f"   Joined Team At: {joined_date}\n")
 
     return "\n".join(lines)
+    
+def parse_fide_player(fide_player):
+    
+    player_id = fide_player.get("id", "Unknown")
+    name = fide_player.get("name", "Unknown")
+    federation = fide_player.get("federation", "N/A")
+    year = fide_player.get("year", "N/A")
+    standard = fide_player.get("standard", "N/A")
+    rapid = fide_player.get("rapid", "N/A")
+    blitz = fide_player.get("blitz", "N/A")
+
+    lines = [
+        f"=== FIDE Player: {name} ===",
+        f"FIDE ID: {player_id}",
+        f"Federation: {federation}",
+        f"Birth Year: {year}",
+        "\n--- Ratings ---",
+        f"Standard: {standard}",
+        f"Rapid: {rapid}",
+        f"Blitz: {blitz}"
+    ]
+
+    return "\n".join(lines)   

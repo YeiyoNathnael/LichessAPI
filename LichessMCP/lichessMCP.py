@@ -58,6 +58,26 @@ async def get_team_search(team_id : str):
     teams = parse_team_search(data)
     return teams
 
+
+################################################33
+# FIDE related stuff down here
+
+@mcp.tool()
+async def get_fide_player(player_id : str):
+    try:
+        data=client.fide.get_player(player_id=player_id)
+        fide_player = parse_fide_player(data)
+        return fide_player
+    except:
+        return "User not found"
+@mcp.tool()
+async def search_fide_player(name: str):
+    fide_players = client.fide.search_players(name=name)
+    for item in fide_players:
+       player = parse_fide_player(item)
+       print(player)
+
+
 def main():
     # Initialize and run the server
     mcp.run(transport='stdio')

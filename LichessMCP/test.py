@@ -1,6 +1,10 @@
 import berserk
-
 from data_parser import *
+from typing import *
+
+
+
+
 client = berserk.Client()
 
 top10 = client.users.get_all_top_10()
@@ -11,7 +15,7 @@ print(crosstable["users"])
 #test to see if the python api actually works, and generally to see some values to use later
 
 
-members = parse_team_members( client.teams.get_members(team_id="ethchess"))
-
-members =client.teams.search(text="ethchess")
-print(members)
+fide_players = client.fide.search_players(name="Nate")
+for item in fide_players:
+    player = parse_fide_player(item)
+    print(player)
